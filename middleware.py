@@ -56,7 +56,7 @@ class SuspiciousTenantMiddleware(TenantMiddleware):
     can bring any custom domain with them, as opposed to all tenants being a
     subdomain of a common base.
 
-    See https://github.com/bernardopires/django-tenant-schemas/pull/269 for
+    See https://github.com/bernardopires/django_multitenant/pull/269 for
     discussion on this middleware.
     """
     TENANT_NOT_FOUND_EXCEPTION = DisallowedHost
