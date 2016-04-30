@@ -6,13 +6,13 @@ multi-tenant setting
 import hashlib
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.template.base import TemplateDoesNotExist
+from django.template import TemplateDoesNotExist
 from django.template.loader import (BaseLoader, get_template_from_string,
                                     find_template_loader, make_origin)
 from django.utils.encoding import force_bytes
 from django.utils._os import safe_join
 from django.db import connection
-from tenant_schemas.postgresql_backend.base import FakeTenant
+from django_multitenant.postgresql_backend.base import FakeTenant
 
 
 class CachedLoader(BaseLoader):
@@ -73,7 +73,7 @@ class CachedLoader(BaseLoader):
         return self.template_cache[key], None
 
     def reset(self):
-        "Empty the template cache."
+        """Empty the template cache."""
         self.template_cache.clear()
 
 
@@ -92,8 +92,10 @@ class FilesystemLoader(BaseLoader):
             try:
                 template_dirs = settings.MULTITENANT_TEMPLATE_DIRS
             except AttributeError:
-                raise ImproperlyConfigured('To use %s.%s you must define the MULTITENANT_TEMPLATE_DIRS' %
-                                           (__name__, FilesystemLoader.__name__))
+                raise ImproperlyConfigured('To use {0}.{1} you must define the MULTITENANT_TEMPLATE_DIRS'.format(
+                    __name__,
+                    FilesystemLoader.__name__
+                ))
         for template_dir in template_dirs:
             try:
                 if '%s' in template_dir:
@@ -114,7 +116,7 @@ class FilesystemLoader(BaseLoader):
         for filepath in self.get_template_sources(template_name, template_dirs):
             try:
                 with open(filepath, 'rb') as fp:
-                    return (fp.read().decode(settings.FILE_CHARSET), filepath)
+                    return fp.read().decode(settings.FILE_CHARSET), filepath
             except IOError:
                 tried.append(filepath)
         if tried:

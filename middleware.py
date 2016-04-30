@@ -3,8 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import DisallowedHost
 from django.db import connection
 from django.http import Http404
-from tenant_schemas.utils import (get_tenant_model, remove_www,
-                                  get_public_schema_name)
+from django_multitenant.utils import get_tenant_model, remove_www, get_public_schema_name
 
 
 class TenantMiddleware(object):
@@ -15,7 +14,8 @@ class TenantMiddleware(object):
     """
     TENANT_NOT_FOUND_EXCEPTION = Http404
 
-    def hostname_from_request(self, request):
+    @staticmethod
+    def hostname_from_request(request):
         """ Extracts hostname from request. Used for custom requests filtering.
             By default removes the request's port and common prefixes.
         """

@@ -1,11 +1,8 @@
 from django.core.management.base import CommandError
 from django.conf import settings
-from tenant_schemas.utils import django_is_in_test_mode
+from django_multitenant.utils import django_is_in_test_mode
 
-if 'south' in settings.INSTALLED_APPS:
-    from south.management.commands import syncdb
-else:
-    from django.core.management.commands import syncdb
+from django.core.management.commands import migrate as syncdb
 
 
 class Command(syncdb.Command):

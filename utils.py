@@ -3,14 +3,11 @@ from contextlib import contextmanager
 from django.conf import settings
 from django.db import connection
 
-try:
-    from django.apps import apps, AppConfig
-    get_model = apps.get_model
-except ImportError:
-    from django.db.models.loading import get_model
-    AppConfig = None
+from django.apps import apps, AppConfig
 from django.core import mail
 
+
+get_model = apps.get_model
 
 
 @contextmanager

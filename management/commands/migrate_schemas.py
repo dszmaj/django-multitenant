@@ -7,8 +7,8 @@ if django.VERSION >= (1, 7, 0):
 from django.db import connection
 from django.conf import settings
 
-from tenant_schemas.utils import get_tenant_model, get_public_schema_name, schema_exists
-from tenant_schemas.management.commands import SyncCommon
+from django_multitenant.utils import get_tenant_model, get_public_schema_name, schema_exists
+from django_multitenant.management.commands import SyncCommon
 
 
 class MigrateSchemasCommand(SyncCommon):

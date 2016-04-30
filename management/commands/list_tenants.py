@@ -2,7 +2,7 @@ import csv
 import sys
 
 from django.core.management import BaseCommand
-from tenant_schemas.utils import get_tenant_model
+from django_multitenant.utils import get_tenant_model
 
 
 class Command(BaseCommand):

@@ -12,7 +12,7 @@ class TenantSyncRouter(object):
         # the imports below need to be done here else django <1.5 goes crazy
         # https://code.djangoproject.com/ticket/20704
         from django.db import connection
-        from tenant_schemas.utils import get_public_schema_name, app_labels
+        from django_multitenant.utils import get_public_schema_name, app_labels
 
         if isinstance(app_label, ModelBase):
             # In django <1.7 the `app_label` parameter is actually `model`

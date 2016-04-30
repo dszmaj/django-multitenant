@@ -8,8 +8,8 @@ except ImportError:
     # Django versions < 1.9
     from django.utils.importlib import import_module
 from django.core.exceptions import ImproperlyConfigured, ValidationError
-from tenant_schemas.utils import get_public_schema_name, get_limit_set_calls
-from tenant_schemas.postgresql_backend.introspection import DatabaseSchemaIntrospection
+from django_multitenant.utils import get_public_schema_name, get_limit_set_calls
+from django_multitenant.postgresql_backend.introspection import DatabaseSchemaIntrospection
 import django.db.utils
 import psycopg2
 
