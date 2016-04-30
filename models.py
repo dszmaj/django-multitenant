@@ -1,11 +1,9 @@
-import django
-from django.conf import settings
 from django.db import models, connection
 from django.core.management import call_command
 
 from django_multitenant.postgresql_backend.base import _check_schema_name
 from django_multitenant.signals import post_schema_sync
-from django_multitenant.utils import django_is_in_test_mode, schema_exists
+from django_multitenant.utils import schema_exists
 from django_multitenant.utils import get_public_schema_name
 
 
@@ -27,25 +25,21 @@ class TenantMixin(models.Model):
     to be automatically created upon save.
     """
 
-    domain_url = models.CharField(max_length=128, unique=True)
+    domain_url = models.CharField(max_length=256, unique=True)
     schema_name = models.CharField(max_length=63, unique=True,
                                    validators=[_check_schema_name])
-
-    class Meta:
-        abstract = True
 
     def save(self, verbosity=1, *args, **kwargs):
         is_new = self.pk is None
 
         if is_new and connection.schema_name != get_public_schema_name():
             raise Exception("Can't create tenant outside the public schema. "
-                            "Current schema is %s." % connection.schema_name)
+                            "Current schema is {}.".format(connection.schema_name))
         elif not is_new and connection.schema_name not in (self.schema_name, get_public_schema_name()):
             raise Exception("Can't update tenant outside it's own schema or "
-                            "the public schema. Current schema is %s."
-                            % connection.schema_name)
+                            "the public schema. Current schema is {}.".format(connection.schema_name))
 
-        super(TenantMixin, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
         if is_new and self.auto_create_schema:
             try:
@@ -65,17 +59,15 @@ class TenantMixin(models.Model):
         """
         if connection.schema_name not in (self.schema_name, get_public_schema_name()):
             raise Exception("Can't delete tenant outside it's own schema or "
-                            "the public schema. Current schema is %s."
-                            % connection.schema_name)
+                            "the public schema. Current schema is {}.".format(connection.schema_name))
 
         if schema_exists(self.schema_name) and (self.auto_drop_schema or force_drop):
             cursor = connection.cursor()
-            cursor.execute('DROP SCHEMA %s CASCADE' % self.schema_name)
+            cursor.execute('DROP SCHEMA {} CASCADE'.format(self.schema_name))
 
-        super(TenantMixin, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
-    def create_schema(self, check_if_exists=False, sync_schema=True,
-                      verbosity=1):
+    def create_schema(self, check_if_exists=False, sync_schema=True, verbosity=1):
         """
         Creates the schema 'schema_name' for this tenant. Optionally checks if
         the schema already exists before creating it. Returns true if the
@@ -90,30 +82,16 @@ class TenantMixin(models.Model):
             return False
 
         # create the schema
-        cursor.execute('CREATE SCHEMA %s' % self.schema_name)
+        cursor.execute('CREATE SCHEMA {}'.format(self.schema_name))
 
         if sync_schema:
-            if django.VERSION >= (1, 7, 0,):
-                call_command('migrate_schemas',
-                             schema_name=self.schema_name,
-                             interactive=False,
-                             verbosity=verbosity)
-            else:
-                # default is faking all migrations and syncing directly to the current models state
-                fake_all_migrations = getattr(settings, 'TENANT_CREATION_FAKES_MIGRATIONS', True)
-                call_command('sync_schemas',
-                             schema_name=self.schema_name,
-                             tenant=True,
-                             public=False,
-                             interactive=False,
-                             migrate_all=fake_all_migrations,
-                             verbosity=verbosity)
-
-                # run/fake all migrations
-                if 'south' in settings.INSTALLED_APPS and not django_is_in_test_mode():
-                    call_command('migrate_schemas',
-                                 fake=fake_all_migrations,
-                                 schema_name=self.schema_name,
-                                 verbosity=verbosity)
+            call_command('migrate_schemas',
+                         schema_name=self.schema_name,
+                         interactive=False,
+                         verbosity=verbosity
+                         )
 
         connection.set_schema_to_public()
+
+    class Meta:
+        abstract = True
