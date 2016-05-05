@@ -1,12 +1,7 @@
 import re
 import warnings
 from django.conf import settings
-try:
-    # Django versions >= 1.9
-    from django.utils.module_loading import import_module
-except ImportError:
-    # Django versions < 1.9
-    from django.utils.importlib import import_module
+from django.utils.module_loading import import_module
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django_multitenant.utils import get_public_schema_name, get_limit_set_calls
 from django_multitenant.postgresql_backend.introspection import DatabaseSchemaIntrospection
