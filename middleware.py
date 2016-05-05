@@ -33,7 +33,7 @@ class TenantMiddleware(object):
             connection.set_tenant(request.tenant)
         except TenantModel.DoesNotExist:
             raise self.TENANT_NOT_FOUND_EXCEPTION(
-                'No tenant for hostname "%s"' % hostname)
+                'No tenant for hostname "{}"'.format(hostname))
 
         # Content type can no longer be cached as public and tenant schemas
         # have different models. If someone wants to change this, the cache
@@ -45,7 +45,8 @@ class TenantMiddleware(object):
         ContentType.objects.clear_cache()
 
         # Do we have a public-specific urlconf?
-        if hasattr(settings, 'PUBLIC_SCHEMA_URLCONF') and request.tenant.schema_name == get_public_schema_name():
+        if hasattr(settings, 'PUBLIC_SCHEMA_URLCONF') \
+                and request.tenant.schema_name == get_public_schema_name():
             request.urlconf = settings.PUBLIC_SCHEMA_URLCONF
 
 
