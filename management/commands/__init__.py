@@ -19,7 +19,7 @@ class BaseTenantCommand(BaseCommand):
         """
         Sets option_list and help dynamically.
         """
-        obj = super(BaseTenantCommand, cls).__new__(cls, *args, **kwargs)
+        obj = super(BaseTenantCommand, cls).__new__(cls, *args)
 
         app_name = get_commands()[obj.COMMAND_NAME]
         if isinstance(app_name, BaseCommand):
@@ -28,20 +28,9 @@ class BaseTenantCommand(BaseCommand):
         else:
             cmdclass = load_command_class(app_name, obj.COMMAND_NAME)
 
-        if django.VERSION < (1, 8, 0):
-            # inherit the options from the original command
-            obj.option_list = cmdclass.option_list
-            obj.option_list += (
-                make_option("-s", "--schema", dest="schema_name"),
-            )
-            obj.option_list += (
-                make_option("-p", "--skip-public", dest="skip_public", action="store_true", default=False),
-            )
-
         # prepend the command's original help with the info about schemata iteration
-        obj.help = "Calls %s for all registered schemata. You can use regular %s options. " \
-                   "Original help for %s: %s" % (obj.COMMAND_NAME, obj.COMMAND_NAME, obj.COMMAND_NAME,
-                                                 getattr(cmdclass, 'help', 'none'))
+        obj.help = "Calls {0} for all registered schemata. You can use regular {0} options. " \
+                   "Original help for {0}: {1}".format(obj.COMMAND_NAME, getattr(cmdclass, 'help', 'none'))
         return obj
 
     def add_arguments(self, parser):
@@ -54,9 +43,9 @@ class BaseTenantCommand(BaseCommand):
 
         if verbosity >= 1:
             print()
-            print(self.style.NOTICE("=== Switching to schema '")
+            print(self.style.NOTICE("========= Switching to schema - '")
                   + self.style.SQL_TABLE(tenant.schema_name)
-                  + self.style.NOTICE("' then calling %s:" % command_name))
+                  + self.style.NOTICE("' then calling {}:".format(command_name)))
 
         connection.set_tenant(tenant)
 
@@ -79,13 +68,6 @@ class BaseTenantCommand(BaseCommand):
 
 
 class InteractiveTenantOption(object):
-    def __init__(self, *args, **kwargs):
-        super(InteractiveTenantOption, self).__init__(*args, **kwargs)
-        if django.VERSION < (1, 8, 0):
-            self.option_list += (
-                make_option("-s", "--schema", dest="schema_name", help="specify tenant schema"),
-            )
-
     def add_arguments(self, parser):
         parser.add_argument("-s", "--schema", dest="schema_name", help="specify tenant schema")
 
@@ -109,7 +91,7 @@ https://django_multitenant.readthedocs.org/en/latest/use.html#creating-a-tenant"
                     break
 
         if tenant_schema not in [t.schema_name for t in all_tenants]:
-            raise CommandError("Invalid tenant schema, '%s'" % (tenant_schema,))
+            raise CommandError("Invalid tenant schema, '{}'".format(tenant_schema))
 
         return TenantModel.objects.get(schema_name=tenant_schema)
 
@@ -154,10 +136,7 @@ class SyncCommon(BaseCommand):
         )
 
     def __init__(self, stdout=None, stderr=None, no_color=False):
-        if django.VERSION >= (1, 8, 0):
-            super(SyncCommon, self).__init__(stdout, stderr, no_color)
-        else:
-            super(SyncCommon, self).__init__()
+        super().__init__(stdout, stderr, no_color)
 
     def add_arguments(self, parser):
         # for django 1.8 and above

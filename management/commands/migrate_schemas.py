@@ -1,9 +1,6 @@
 import django
-from optparse import NO_DEFAULT
 
-if django.VERSION >= (1, 7, 0):
-    from django.core.management.commands.migrate import Command as MigrateCommand
-    from django.db.migrations.recorder import MigrationRecorder
+from django.core.management.commands.migrate import Command as MigrateCommand
 from django.db import connection
 from django.conf import settings
 
@@ -19,10 +16,7 @@ class MigrateSchemasCommand(SyncCommon):
         Changes the option_list to use the options from the wrapped migrate command.
         """
         self.option_list += MigrateCommand.option_list
-        if django.VERSION >= (1, 8, 0):
-            super(MigrateSchemasCommand, self).__init__(stdout, stderr, no_color)
-        else:
-            super(MigrateSchemasCommand, self).__init__()
+        super(MigrateSchemasCommand, self).__init__(stdout, stderr, no_color)
 
     def add_arguments(self, parser):
         super(MigrateSchemasCommand, self).add_arguments(parser)
@@ -41,8 +35,7 @@ class MigrateSchemasCommand(SyncCommon):
         if self.sync_tenant:
             if self.schema_name and self.schema_name != self.PUBLIC_SCHEMA_NAME:
                 if not schema_exists(self.schema_name):
-                    raise RuntimeError('Schema "{}" does not exist'.format(
-                        self.schema_name))
+                    raise RuntimeError('Schema "{}" does not exist'.format(self.schema_name))
                 else:
                     self.run_migrations(self.schema_name, settings.TENANT_APPS)
             else:
@@ -52,7 +45,7 @@ class MigrateSchemasCommand(SyncCommon):
 
     def run_migrations(self, schema_name, included_apps):
         if int(self.options.get('verbosity', 1)) >= 1:
-            self._notice("=== Running migrate for schema %s" % schema_name)
+            self._notice("=== Running migrate for schema {}".format(schema_name))
         connection.set_schema(schema_name)
         command = MigrateCommand()
         command.execute(*self.args, **self.options)
@@ -62,7 +55,4 @@ class MigrateSchemasCommand(SyncCommon):
         self.stdout.write(self.style.NOTICE(output))
 
 
-if django.VERSION >= (1, 7, 0):
-    Command = MigrateSchemasCommand
-else:
-    from .legacy.migrate_schemas import Command
+Command = MigrateSchemasCommand

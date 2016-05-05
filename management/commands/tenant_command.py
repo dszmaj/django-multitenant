@@ -2,7 +2,7 @@ import argparse
 from django.core.management.base import BaseCommand, CommandError
 from django.core.management import call_command, get_commands, load_command_class
 from django.db import connection
-from tenant_schemas.management.commands import InteractiveTenantOption
+from django_multitenant.management.commands import InteractiveTenantOption
 
 
 class Command(InteractiveTenantOption, BaseCommand):
@@ -18,7 +18,7 @@ class Command(InteractiveTenantOption, BaseCommand):
         try:
             app_name = get_commands()[argv[2]]
         except KeyError:
-            raise CommandError("Unknown command: %r" % argv[2])
+            raise CommandError("Unknown command: {}".format(argv[2]))
 
         if isinstance(app_name, BaseCommand):
             # if the command is already loaded, use it directly.

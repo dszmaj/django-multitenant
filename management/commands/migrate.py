@@ -3,10 +3,8 @@ from django.conf import settings
 from django.core.management.base import CommandError, BaseCommand
 from django_multitenant.utils import django_is_in_test_mode
 
-try:
-    from south.management.commands.migrate import Command as MigrateCommand
-except ImportError:
-    MigrateCommand = BaseCommand
+
+MigrateCommand = BaseCommand
 
 
 class Command(MigrateCommand):
