@@ -36,6 +36,7 @@ class TenantMiddleware:
                 .select_related('owner').prefetch_related('owner__domains')
             request.tenant = request.domain[0].owner
             connection.set_tenant(request.tenant)
+            connection.set_domain(request.domain[0])
         except (DomainModel.DoesNotExist, IndexError):
             raise self.DOMAIN_NOT_FOUND_EXCEPTION(
                 'No domain "{}" set in the system'.format(domain)
