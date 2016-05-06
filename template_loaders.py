@@ -29,10 +29,10 @@ class FilesystemLoader(Loader):
                 ))
         for template_dir in template_dirs:
             try:
-                if '%s' in template_dir:
-                    yield safe_join(template_dir % connection.tenant.domain_url, template_name)
+                if '{}' in template_dir:
+                    yield safe_join(template_dir.format(connection.tenant.subdomain), template_name)
                 else:
-                    yield safe_join(template_dir, connection.tenant.domain_url, template_name)
+                    yield safe_join(template_dir, connection.tenant.subdomain, template_name)
             except UnicodeDecodeError:
                 # The template dir name was a bytestring that wasn't valid UTF-8.
                 raise
