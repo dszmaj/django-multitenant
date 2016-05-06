@@ -27,12 +27,18 @@ class FilesystemLoader(Loader):
                     __name__,
                     FilesystemLoader.__name__
                 ))
-        for template_dir in template_dirs:
+
+        subdomain = connection.tenant.subdomain
+        domains = [connection.tenant.domains]
+
+        for template_dir in [template_dirs]:
             try:
-                if '{}' in template_dir:
-                    yield safe_join(template_dir.format(connection.tenant.subdomain), template_name)
+                if len(domains) > 1:
+                    domain_dirs = [safe_join(template_dir, subdomain, domain.name, 'templates') for domain in domains]
                 else:
-                    yield safe_join(template_dir, connection.tenant.subdomain, template_name)
+                    domain_dirs = domains
+                for domain_dir in domain_dirs:
+                    yield safe_join(template_dir, subdomain, domain_dir.name, 'templates')
             except UnicodeDecodeError:
                 # The template dir name was a bytestring that wasn't valid UTF-8.
                 raise
@@ -51,7 +57,7 @@ class FilesystemLoader(Loader):
             except IOError:
                 tried.append(filepath)
         if tried:
-            error_msg = "Tried %s" % tried
+            error_msg = "Tried {}".format(tried)
         else:
             error_msg = "Your TEMPLATE_DIRS setting is empty. Change it to point to at least one template directory."
         raise TemplateDoesNotExist(error_msg)

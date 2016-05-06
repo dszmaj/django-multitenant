@@ -1,7 +1,7 @@
 import tldextract
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import connection
+from django.db import connection, models
 from django.http import Http404
 from django_multitenant.utils import get_domain_model
 
@@ -20,7 +20,11 @@ class TenantMiddleware:
         connection.set_schema_to_public()
 
         extract = tldextract.extract(request.get_host())
-        domain = ''.join([extract.domain, extract.suffix])
+        domain = ''.join([
+            extract.domain,
+            '.' if extract.suffix else '',
+            extract.suffix
+        ])
 
         subdomain = extract.subdomain if extract.subdomain is not 'www' else False
         request.subdomain = subdomain or None
@@ -28,10 +32,11 @@ class TenantMiddleware:
         DomainModel = get_domain_model()
 
         try:
-            request.domain = DomainModel.objects.get(name=domain)
-            request.tenant = request.domain.owner
+            request.domain = DomainModel.objects.filter(name__exact=domain)\
+                .select_related('owner').prefetch_related('owner__domains')
+            request.tenant = request.domain[0].owner
             connection.set_tenant(request.tenant)
-        except DomainModel.DoesNotExist:
+        except (DomainModel.DoesNotExist, IndexError):
             raise self.DOMAIN_NOT_FOUND_EXCEPTION(
                 'No domain "{}" set in the system'.format(domain)
             )
