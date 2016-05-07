@@ -38,7 +38,7 @@ class FilesystemLoader(Loader):
                 else:
                     domain_dirs = domains
                 for domain_dir in domain_dirs:
-                    yield safe_join(template_dir, subdomain, domain_dir.name, 'templates')
+                    yield safe_join(template_dir, subdomain, domain_dir.name, 'templates', template_name)
             except UnicodeDecodeError:
                 # The template dir name was a bytestring that wasn't valid UTF-8.
                 raise
