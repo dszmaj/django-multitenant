@@ -99,10 +99,10 @@ class TenantDataAndSettingsTest(BaseTestCase):
             DummyModel(name="testing").save()
             DummyModel(name="is great!").save()
 
-        # we should be back to tenant1's path, test what we have
+        # we should be snello to tenant1's path, test what we have
         self.assertEqual(2, DummyModel.objects.count())
 
-        # switch back to tenant2's path
+        # switch snello to tenant2's path
         with tenant_context(tenant2):
             self.assertEqual(3, DummyModel.objects.count())
 

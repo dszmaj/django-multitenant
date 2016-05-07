@@ -20,13 +20,7 @@ class FilesystemLoader(Loader):
         if not connection.tenant or isinstance(connection.tenant, FakeTenant):
             return
         if not template_dirs:
-            try:
-                template_dirs = settings.MULTITENANT_TEMPLATE_DIRS
-            except AttributeError:
-                raise ImproperlyConfigured('To use {0}.{1} you must define the MULTITENANT_TEMPLATE_DIRS'.format(
-                    __name__,
-                    FilesystemLoader.__name__
-                ))
+            template_dirs = settings.TEMPLATES[0]['DIRS']
 
         subdomain = connection.tenant.subdomain
         domains = [connection.tenant.domains]
@@ -34,11 +28,11 @@ class FilesystemLoader(Loader):
         for template_dir in [template_dirs]:
             try:
                 if len(domains) > 1:
-                    domain_dirs = [safe_join(template_dir, subdomain, domain.name, 'templates') for domain in domains]
+                    domain_dirs = [safe_join(template_dir, subdomain, domain.name) for domain in domains]
                 else:
                     domain_dirs = domains
                 for domain_dir in domain_dirs:
-                    yield safe_join(template_dir, subdomain, domain_dir.name, 'templates')
+                    yield safe_join(template_dir, subdomain, domain_dir.name, template_name)
             except UnicodeDecodeError:
                 # The template dir name was a bytestring that wasn't valid UTF-8.
                 raise
