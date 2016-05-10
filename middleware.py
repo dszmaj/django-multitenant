@@ -33,10 +33,10 @@ class TenantMiddleware:
 
         try:
             request.domain = DomainModel.objects.filter(name__exact=domain)\
-                .select_related('owner').prefetch_related('owner__domains')
-            request.tenant = request.domain[0].owner
+                .select_related('owner').prefetch_related('owner__domains').first()
+            request.tenant = request.domain.owner
             connection.set_tenant(request.tenant)
-            connection.set_domain(request.domain[0])
+            connection.set_domain(request.domain)
         except (DomainModel.DoesNotExist, IndexError):
             raise self.DOMAIN_NOT_FOUND_EXCEPTION(
                 'No domain "{}" set in the system'.format(domain)
