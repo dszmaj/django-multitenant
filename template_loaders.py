@@ -26,7 +26,7 @@ class FilesystemLoader(Loader):
             try:
                 yield safe_join(
                     template_dir,
-                    connection.tenant.subdomain,
+                    connection.tenant.schema_name,
                     connection.domain.name,
                     template_name
                 )

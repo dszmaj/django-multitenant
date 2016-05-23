@@ -33,8 +33,8 @@ class TenantMiddleware:
 
         try:
             request.domain = DomainModel.objects.filter(name__exact=domain)\
-                .select_related('owner').prefetch_related('owner__domains').first()
-            request.tenant = request.domain.owner
+                .select_related('tenant').prefetch_related('tenant__domains').first()
+            request.tenant = request.domain.tenant
             connection.set_tenant(request.tenant)
             connection.set_domain(request.domain)
         except (
