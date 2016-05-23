@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import SuspiciousFileOperation
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader
 from django.utils._os import safe_join
@@ -22,12 +23,15 @@ class FilesystemLoader(Loader):
             template_dirs = self.engine.dirs
 
         for template_dir in template_dirs:
-            yield safe_join(
-                template_dir,
-                connection.tenant.subdomain,
-                connection.domain.name,
-                template_name
-            )
+            try:
+                yield safe_join(
+                    template_dir,
+                    connection.tenant.subdomain,
+                    connection.domain.name,
+                    template_name
+                )
+            except SuspiciousFileOperation:
+                continue
 
     def load_template_source(self, template_name, template_dirs=None):
         tried = []
