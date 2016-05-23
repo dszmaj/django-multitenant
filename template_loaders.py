@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.template import TemplateDoesNotExist
 from django.template.loaders.base import Loader
 from django.utils._os import safe_join
@@ -20,27 +19,15 @@ class FilesystemLoader(Loader):
         if not connection.tenant or isinstance(connection.tenant, FakeTenant):
             return
         if not template_dirs:
-            template_dirs = settings.TEMPLATES[0]['DIRS']
+            template_dirs = self.engine.dirs
 
-        subdomain = connection.tenant.subdomain
-        domains = [connection.tenant.domains]
-
-        for template_dir in [template_dirs]:
-            try:
-                if len(domains) > 1:
-                    domain_dirs = [safe_join(template_dir, subdomain, domain.name) for domain in domains]
-                else:
-                    domain_dirs = domains
-                for domain_dir in domain_dirs:
-                    yield safe_join(template_dir, subdomain, domain_dir.name, template_name)
-            except UnicodeDecodeError:
-                # The template dir name was a bytestring that wasn't valid UTF-8.
-                raise
-            except ValueError:
-                # The joined path was located outside of this particular
-                # template_dir (it might be inside another one, so this isn't
-                # fatal).
-                pass
+        for template_dir in template_dirs:
+            yield safe_join(
+                template_dir,
+                connection.tenant.subdomain,
+                connection.domain.name,
+                template_name
+            )
 
     def load_template_source(self, template_name, template_dirs=None):
         tried = []
@@ -50,9 +37,6 @@ class FilesystemLoader(Loader):
                     return fp.read().decode(settings.FILE_CHARSET), filepath
             except IOError:
                 tried.append(filepath)
-        if tried:
-            error_msg = "Tried {}".format(tried)
-        else:
-            error_msg = "Your TEMPLATE_DIRS setting is empty. Change it to point to at least one template directory."
-        raise TemplateDoesNotExist(error_msg)
+        raise TemplateDoesNotExist(template_name, tried=tried)
+
     load_template_source.is_usable = True
