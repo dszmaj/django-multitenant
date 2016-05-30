@@ -1,9 +1,6 @@
-import tldextract
-
-from django.contrib.contenttypes.models import ContentType
-from django.db import connection, models
+from django.db import connection
 from django.http import Http404
-from django_multitenant.utils import get_domain_model
+from django.contrib.contenttypes.models import ContentType
 
 
 class TenantMiddleware:
@@ -14,36 +11,14 @@ class TenantMiddleware:
     """
     DOMAIN_NOT_FOUND_EXCEPTION = Http404
 
-    def process_request(self, request):
+    @staticmethod
+    def process_request(request):
         # Connection needs first to be at the public schema, as this is where
         # the tenant metadata is stored.
         connection.set_schema_to_public()
 
-        extract = tldextract.extract(request.get_host())
-        domain = ''.join([
-            extract.domain,
-            '.' if extract.suffix else '',
-            extract.suffix
-        ])
-
-        subdomain = extract.subdomain if extract.subdomain is not 'www' else False
-        request.subdomain = subdomain or None
-
-        DomainModel = get_domain_model()
-
-        try:
-            request.domain = DomainModel.objects.filter(name__exact=domain)\
-                .select_related('tenant').prefetch_related('tenant__domains').first()
-            request.tenant = request.domain.tenant
-            connection.set_tenant(request.tenant)
-            connection.set_domain(request.domain)
-        except (
-                AttributeError,
-                DomainModel.DoesNotExist
-        ):
-            raise self.DOMAIN_NOT_FOUND_EXCEPTION(
-                'No domain "{}" set in the system'.format(domain)
-            )
+        connection.set_tenant(request.tenant)
+        connection.set_domain(request.domain)
 
         # Content type can no longer be cached as public and tenant schemas
         # have different models. If someone wants to change this, the cache
