@@ -11,13 +11,6 @@ from django_multitenant.management.commands import SyncCommon
 class MigrateSchemasCommand(SyncCommon):
     help = "Updates database schema. Manages both apps with migrations and those without."
 
-    def __init__(self, stdout=None, stderr=None, no_color=False):
-        """
-        Changes the option_list to use the options from the wrapped migrate command.
-        """
-        self.option_list += MigrateCommand.option_list
-        super(MigrateSchemasCommand, self).__init__(stdout, stderr, no_color)
-
     def add_arguments(self, parser):
         super(MigrateSchemasCommand, self).add_arguments(parser)
         command = MigrateCommand()

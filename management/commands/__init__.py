@@ -2,7 +2,7 @@ import django
 from optparse import make_option
 from django.conf import settings
 from django.core.management import call_command, get_commands, load_command_class
-from django.core.management.base import BaseCommand, NoArgsCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection, DEFAULT_DB_ALIAS
 
 from django_multitenant.utils import get_tenant_model, get_public_schema_name
